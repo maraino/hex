@@ -11,9 +11,10 @@ import (
 )
 
 func main() {
-	var decode, dump bool
+	var decode, dump, pretty bool
 	flag.BoolVar(&decode, "d", false, "decodes input")
 	flag.BoolVar(&dump, "c", false, "encodes the input as hexadecimal followed by characters")
+	flag.BoolVar(&pretty, "p", false, "encoded using a prettier format aa:bb")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -55,7 +56,12 @@ func main() {
 	case dump:
 		fmt.Print(hex.Dump(b))
 	default:
-		fmt.Printf("%X\n", b)
+		if pretty {
+			prettify(b)
+		} else {
+			fmt.Printf("%x\n", b)
+		}
+
 	}
 }
 
@@ -80,4 +86,18 @@ func isHexChar(c byte) bool {
 	default:
 		return false
 	}
+}
+
+func prettify(data []byte) {
+	last := len(data) - 1
+	for i, b := range data {
+		if i != 0 && (i%16) == 0 {
+			fmt.Print("\n")
+		}
+		fmt.Printf("%02x", b)
+		if i != last {
+			fmt.Print(":")
+		}
+	}
+	fmt.Println()
 }

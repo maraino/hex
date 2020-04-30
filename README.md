@@ -10,13 +10,14 @@ go install github.com/maraino/hex
 
 ## Usage
 
-No brainer functionality, just two flags and four features.
+No brainer functionality, just three flags and four features.
 
 ```sh
 $ hex --help
 Usage: hex [<filename>]
  -c encodes the input as hexadecimal followed by characters
  -d decodes input
+ -p encoded using a prettier format aa:bb
 ```
 
 ### Encode
@@ -32,6 +33,13 @@ $ hex hello.txt
 ```sh
 $ echo Hello World! | hex
 48656C6C6F20576F726C64210A
+```
+
+Or encode to a prettier format:
+
+```sh
+$ echo Hello World! | hex -p
+48:65:6c:6c:6f:20:57:6f:72:6c:64:21:0a
 ```
 
 ### Decode
