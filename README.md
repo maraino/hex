@@ -27,12 +27,12 @@ Encodes a file or the standard input to hexadecimal.
 ```sh
 $ echo Hello World! >  hello.txt
 $ hex hello.txt
-48656C6C6F20576F726C64210A
+48656c6c6f20576f726c64210a
 ```
 
 ```sh
 $ echo Hello World! | hex
-48656C6C6F20576F726C64210A
+48656c6c6f20576f726c64210a
 ```
 
 Or encode to a prettier format:
@@ -47,7 +47,7 @@ $ echo Hello World! | hex -p
 Decodes an hexadecimal string:
 
 ```sh
-$ echo 48656C6C6F20576F726C64210A | hex -d
+$ echo 48656c6c6f20576f726c64210a | hex -d
 Hello World!
 ```
 
