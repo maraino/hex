@@ -5,7 +5,7 @@ A simple tool to encode and decode to hexadecimal.
 ## Install
 
 ```sh
-go get github.com/maraino/hex
+go install github.com/maraino/hex
 ```
 
 ## Usage
