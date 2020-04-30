@@ -1,6 +1,6 @@
 # hex
 
-A simple tool to encode and decode to hexadecimal.
+A simple tool to encode and decode hexadecimal data.
 
 ## Install
 
