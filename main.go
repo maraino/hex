@@ -39,6 +39,10 @@ func main() {
 	switch {
 	case decode:
 		var bb bytes.Buffer
+		// Remove 0x prefix
+		if len(b) >= 2 && bytes.EqualFold(b[:2], []byte("0x")) {
+			b = b[2:]
+		}
 		for _, c := range b {
 			if isHexChar(c) {
 				bb.WriteByte(c)
