@@ -9,18 +9,54 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
+type prettyFormat struct {
+	IsSet   bool
+	Columns int
+}
+
+func (p *prettyFormat) String() string {
+	if p.Columns == 0 {
+		return "true"
+	}
+	return strconv.Itoa(p.Columns)
+}
+
+func (p *prettyFormat) Set(s string) error {
+	s = strings.ToLower(s)
+	if s == "true" || s == "false" {
+		p.IsSet = (s == "true")
+		return nil
+	}
+
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
+
+	p.IsSet = true
+	p.Columns = n
+	return nil
+}
+
+func (p *prettyFormat) IsBoolFlag() bool {
+	return true
+}
+
 func main() {
-	var decode, dump, pretty, number, goFormat bool
-	var base, cols int
+	var decode, dump, number bool
+	var base int
+	var pretty, goFormat prettyFormat
+
 	flag.BoolVar(&decode, "d", false, "decodes input")
 	flag.BoolVar(&dump, "c", false, "encodes the input as hexadecimal followed by characters")
-	flag.BoolVar(&pretty, "p", false, "encoded using a prettier format aa:bb")
-	flag.BoolVar(&goFormat, "go", false, "encoded using as Go's []byte")
+	flag.Var(&pretty, "p", "encoded using a prettier format aa:bb, pass -p=n to print using n columns")
+	flag.Var(&goFormat, "go", "encoded using as Go's []byte, pass -go=n to print using n columns")
 	flag.BoolVar(&number, "n", false, "interprets input as a number")
 	flag.IntVar(&base, "b", 10, "base used to when -n is used")
-	flag.IntVar(&cols, "cols", 0, "number of columns for pretty and Go's format")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -74,10 +110,10 @@ func main() {
 			b = n.Bytes()
 		}
 		switch {
-		case pretty:
-			prettify(b, cols)
-		case goFormat:
-			goify(b, cols)
+		case pretty.IsSet:
+			prettify(b, pretty.Columns)
+		case goFormat.IsSet:
+			goify(b, goFormat.Columns)
 		default:
 			fmt.Printf("%x\n", b)
 		}
@@ -85,8 +121,14 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [<filename>]\n", filepath.Base(os.Args[0]))
-	flag.PrintDefaults()
+	o := flag.CommandLine.Output()
+	fmt.Fprintf(o, "Usage: %s [<filename>]\n", filepath.Base(os.Args[0]))
+	fmt.Fprintf(o, "  -c      %s\n", flag.Lookup("c").Usage)
+	fmt.Fprintf(o, "  -d      %s\n", flag.Lookup("d").Usage)
+	fmt.Fprintf(o, "  -p      %s\n", flag.Lookup("p").Usage)
+	fmt.Fprintf(o, "  -go     %s\n", flag.Lookup("go").Usage)
+	fmt.Fprintf(o, "  -n      %s\n", flag.Lookup("n").Usage)
+	fmt.Fprintf(o, "  -b int  %s (default: %s)\n", flag.Lookup("b").Usage, flag.Lookup("b").DefValue)
 }
 
 func fatal(err error) {
