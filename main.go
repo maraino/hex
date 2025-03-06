@@ -6,15 +6,21 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"path/filepath"
 )
 
 func main() {
-	var decode, dump, pretty bool
+	var decode, dump, pretty, number, goFormat bool
+	var base, cols int
 	flag.BoolVar(&decode, "d", false, "decodes input")
 	flag.BoolVar(&dump, "c", false, "encodes the input as hexadecimal followed by characters")
 	flag.BoolVar(&pretty, "p", false, "encoded using a prettier format aa:bb")
+	flag.BoolVar(&goFormat, "go", false, "encoded using as Go's []byte")
+	flag.BoolVar(&number, "n", false, "interprets input as a number")
+	flag.IntVar(&base, "b", 10, "base used to when -n is used")
+	flag.IntVar(&cols, "cols", 0, "number of columns for pretty and Go's format")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -60,12 +66,21 @@ func main() {
 	case dump:
 		fmt.Print(hex.Dump(b))
 	default:
-		if pretty {
-			prettify(b)
-		} else {
+		if number {
+			n, ok := new(big.Int).SetString(string(bytes.TrimSpace(b)), base)
+			if !ok {
+				fatal(fmt.Errorf("error parsing %s in base %d", b, base))
+			}
+			b = n.Bytes()
+		}
+		switch {
+		case pretty:
+			prettify(b, cols)
+		case goFormat:
+			goify(b, cols)
+		default:
 			fmt.Printf("%x\n", b)
 		}
-
 	}
 }
 
@@ -92,10 +107,13 @@ func isHexChar(c byte) bool {
 	}
 }
 
-func prettify(data []byte) {
+func prettify(data []byte, cols int) {
+	if cols == 0 {
+		cols = 16
+	}
 	last := len(data) - 1
 	for i, b := range data {
-		if i != 0 && (i%16) == 0 {
+		if i != 0 && (i%cols) == 0 {
 			fmt.Print("\n")
 		}
 		fmt.Printf("%02x", b)
@@ -104,4 +122,29 @@ func prettify(data []byte) {
 		}
 	}
 	fmt.Println()
+}
+
+func goify(data []byte, cols int) {
+	if cols == 0 {
+		cols = 8
+	}
+	last := len(data) - 1
+	fmt.Println("[]byte{")
+	for i, b := range data {
+		if (i % cols) == 0 {
+			if i == 0 {
+				fmt.Print("\t")
+			} else {
+				fmt.Print("\n\t")
+			}
+		}
+
+		fmt.Printf("0x%02x", b)
+		if i != last {
+			fmt.Print(", ")
+		} else {
+			fmt.Print(",")
+		}
+	}
+	fmt.Println("\n}")
 }
